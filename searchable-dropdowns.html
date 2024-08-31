@@ -44,7 +44,7 @@
 <body>
 
 <main class="container">
-    <div x-data="searchInput">
+    <div x-data="searchInput" x-init="init">
         <details role="list" :open="isOpen">
             <summary aria-haspopup="listbox">
               <input type="text" @input="getItems" placeholder="Search ..." x-model="search" @focus="isOpen = true">
@@ -70,16 +70,20 @@
 <script>
 document.addEventListener('alpine:init', () => {
         Alpine.data('searchInput', () => ({
-            isOpen: false,
+            isOpen: true,
             search: "",
             selectedItem: null,
+
+            init() {
+                this.isOpen = true; // Open the dropdown initially
+            },
 
             get getItems() {
                 const filterItems = this.sourceData.filter((item) => {
                     return item.employee_name.toLowerCase().includes(this.search.toLowerCase());
                 });
 
-                this.isOpen = filterItems.length > 0 && this.search.length > 0;
+                this.isOpen = filterItems.length > 0 && this.search.length >= 0;
                 return filterItems;
             },
 
