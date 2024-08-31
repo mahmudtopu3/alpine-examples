@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpine.js Data Table with Combined Search, Column-Wise Search, and Pagination</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
+</head>
+<body>
+
+<div class="container mt-5" x-data="dataTable()">
+    <!-- Combined Search -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <input type="text" class="form-control" placeholder="Search all columns..." x-model="search">
+        </div>
+    </div>
+    <!-- Data Table -->
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th @click="sortTable('id')" class="cursor-pointer"># <span x-show="sortBy === 'id'" x-text="sortAsc ? '▲' : '▼'"></span></th>
+                <th @click="sortTable('name')" class="cursor-pointer">Name <span x-show="sortBy === 'name'" x-text="sortAsc ? '▲' : '▼'"></span></th>
+                <th @click="sortTable('age')" class="cursor-pointer">Age <span x-show="sortBy === 'age'" x-text="sortAsc ? '▲' : '▼'"></span></th>
+                <th @click="sortTable('city')" class="cursor-pointer">City <span x-show="sortBy === 'city'" x-text="sortAsc ? '▲' : '▼'"></span></th>
+            </tr>
+            <tr>
+                <th><input type="text" class="form-control" placeholder="Search ID..." x-model="searchColumns.id"></th>
+                <th><input type="text" class="form-control" placeholder="Search Name..." x-model="searchColumns.name"></th>
+                <th><input type="text" class="form-control" placeholder="Search Age..." x-model="searchColumns.age"></th>
+                <th><input type="text" class="form-control" placeholder="Search City..." x-model="searchColumns.city"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <template x-for="person in paginatedData" :key="person.id">
+                <tr>
+                    <td x-text="person.id"></td>
+                    <td x-text="person.name"></td>
+                    <td x-text="person.age"></td>
+                    <td x-text="person.city"></td>
+                </tr>
+            </template>
+        </tbody>
+    </table>
+    <!-- Pagination Controls -->
+    <nav>
+        <ul class="pagination">
+            <li class="page-item" :class="{ 'disabled': currentPage === 1 }">
+                <a class="page-link" href="#" @click.prevent="currentPage = currentPage > 1 ? currentPage - 1 : 1">Previous</a>
+            </li>
+            <template x-for="page in totalPages" :key="page">
+                <li class="page-item" :class="{ 'active': currentPage === page }">
+                    <a class="page-link" href="#" @click.prevent="currentPage = page" x-text="page"></a>
+                </li>
+            </template>
+            <li class="page-item" :class="{ 'disabled': currentPage === totalPages }">
+                <a class="page-link" href="#" @click.prevent="currentPage = currentPage < totalPages ? currentPage + 1 : totalPages">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+    function dataTable() {
+        return {
+            search: '',
+            sortBy: 'id',
+            sortAsc: true,
+            searchColumns: {
+                id: '',
+                name: '',
+                age: '',
+                city: ''
+            },
+            currentPage: 1,
+            perPage: 5, // Number of rows per page
+            data: [
+                { id: 1, name: 'John Doe', age: 25, city: 'New York' },
+                { id: 2, name: 'Jane Smith', age: 30, city: 'Los Angeles' },
+                { id: 3, name: 'Sam Johnson', age: 22, city: 'Chicago' },
+                { id: 4, name: 'Michael Brown', age: 35, city: 'Houston' },
+                { id: 5, name: 'Emily Davis', age: 28, city: 'Phoenix' },
+                { id: 6, name: 'David Wilson', age: 31, city: 'San Antonio' },
+                { id: 7, name: 'Laura Green', age: 29, city: 'Dallas' },
+                { id: 8, name: 'Paul White', age: 23, city: 'San Diego' },
+                { id: 9, name: 'Karen Black', age: 34, city: 'San Jose' },
+                { id: 10, name: 'Nancy King', age: 27, city: 'Austin' },
+                // Add more data as needed...
+            ],
+            get filteredData() {
+                let data = this.data;
+                let columns = this.searchColumns;
+                
+                // Global Search
+                if (this.search) {
+                    data = data.filter(person => 
+                        Object.values(person).some(value =>
+                            String(value).toLowerCase().includes(this.search.toLowerCase())
+                        )
+                    );
+                }
+
+                // Column-wise Search
+                data = data.filter(person => {
+                    return (!columns.id || person.id.toString().includes(columns.id)) &&
+                           (!columns.name || person.name.toLowerCase().includes(columns.name.toLowerCase())) &&
+                           (!columns.age || person.age.toString().includes(columns.age)) &&
+                           (!columns.city || person.city.toLowerCase().includes(columns.city.toLowerCase()));
+                });
+
+                // Sorting
+                return data.sort((a, b) => {
+                    let modifier = this.sortAsc ? 1 : -1;
+                    if (a[this.sortBy] < b[this.sortBy]) return -1 * modifier;
+                    if (a[this.sortBy] > b[this.sortBy]) return 1 * modifier;
+                    return 0;
+                });
+            },
+            get paginatedData() {
+                const start = (this.currentPage - 1) * this.perPage;
+                const end = this.currentPage * this.perPage;
+                return this.filteredData.slice(start, end);
+            },
+            get totalPages() {
+                return Math.ceil(this.filteredData.length / this.perPage);
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

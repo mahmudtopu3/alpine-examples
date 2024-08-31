@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpine.js Data Table</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
+</head>
+
+<body>
+    <div class="container mt-5" x-data="dataTable()">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" placeholder="Search..." x-model="search">
+            </div>
+        </div>
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th @click="sortTable('id')" class="cursor-pointer"># <span x-show="sortBy === 'id'"
+                            x-text="sortAsc ? '▲' : '▼'"></span></th>
+                    <th @click="sortTable('name')" class="cursor-pointer">Name <span x-show="sortBy === 'name'"
+                            x-text="sortAsc ? '▲' : '▼'"></span></th>
+                    <th @click="sortTable('age')" class="cursor-pointer">Age <span x-show="sortBy === 'age'"
+                            x-text="sortAsc ? '▲' : '▼'"></span></th>
+                    <th @click="sortTable('city')" class="cursor-pointer">City <span x-show="sortBy === 'city'"
+                            x-text="sortAsc ? '▲' : '▼'"></span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-for="person in filteredData" :key="person.id">
+                    <tr>
+                        <td x-text="person.id"></td>
+                        <td x-text="person.name"></td>
+                        <td x-text="person.age"></td>
+                        <td x-text="person.city"></td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function dataTable() {
+            return {
+                search: '',
+                sortBy: 'id',
+                sortAsc: true,
+                data: [
+                    { id: 1, name: 'John Doe', age: 25, city: 'New York' },
+                    { id: 2, name: 'Jane Smith', age: 30, city: 'Los Angeles' },
+                    { id: 3, name: 'Sam Johnson', age: 22, city: 'Chicago' },
+                    { id: 4, name: 'Michael Brown', age: 35, city: 'Houston' },
+                    { id: 5, name: 'Emily Davis', age: 28, city: 'Phoenix' }
+                ],
+                get filteredData() {
+                    let data = this.data;
+                    if (this.search) {
+                        data = data.filter(person =>
+                            Object.values(person).some(value =>
+                                String(value).toLowerCase().includes(this.search.toLowerCase())
+                            )
+                        );
+                    }
+                    return data.sort((a, b) => {
+                        let modifier = this.sortAsc ? 1 : -1;
+                        if (a[this.sortBy] < b[this.sortBy]) return -1 * modifier;
+                        if (a[this.sortBy] > b[this.sortBy]) return 1 * modifier;
+                        return 0;
+                    });
+                },
+                sortTable(column) {
+                    if (this.sortBy === column) {
+                        this.sortAsc = !this.sortAsc;
+                    } else {
+                        this.sortBy = column;
+                        this.sortAsc = true;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
